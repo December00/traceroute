@@ -56,11 +56,11 @@ def traceroute(dest_name):
     while ttl <= MAX_HOPS:
         print(f"{ttl:<3}", end="")
 
-        hop_ip = None  # IP-адрес текущего узла
-        rtt_list = []  # Время отклика для каждого из трех пакетов
+        hop_ip = None
+        rtt_list = []
 
         for _ in range(PACKETS_PER_HOP):
-            # Создание сырого сокета для отправки и получения ICMP
+
             try:
                 recv_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
                 send_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
@@ -74,13 +74,12 @@ def traceroute(dest_name):
             send_time = time.time()
 
             try:
-                # Отправка ICMP пакета
+
                 send_socket.sendto(packet, (dest_addr, 0))
 
-                # Ожидание ответа
                 ready = select.select([recv_socket], [], [], TIMEOUT)
                 if not ready[0]:
-                    rtt_list.append("*")  # Время отклика отсутствует
+                    rtt_list.append("*")
                     continue
 
                 recv_packet, addr = recv_socket.recvfrom(512)
