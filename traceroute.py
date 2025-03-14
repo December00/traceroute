@@ -33,11 +33,11 @@ def check_sum(source_string):
     answer = answer >> 8 | (answer << 8 & 0xFF00)
     return answer
 
-def packet_create(pid):
-    header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, 0, pid, 1)
+def packet_create(pid, seq):
+    header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, 0, pid, seq)
     data = struct.pack("d", time.time())
     check_sum_value = check_sum(header + data)
-    header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, socket.htons(check_sum_value), pid, 1)
+    header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, socket.htons(check_sum_value), pid, seq)
     return header + data
 
 def traceroute(dest_name):
@@ -52,7 +52,7 @@ def traceroute(dest_name):
 
     pid = os.getpid() & 0xFFFF
     ttl = 1
-
+    seq = 1
     while ttl <= MAX_HOPS:
         print(f"{ttl:<3}", end="")
 
@@ -60,7 +60,7 @@ def traceroute(dest_name):
         rtt_list = []
 
         for _ in range(PACKETS_PER_HOP):
-
+            seq += 1
             try:
                 recv_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
                 send_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
@@ -70,7 +70,7 @@ def traceroute(dest_name):
                 print("Для выполнения программы требуются права суперпользователя (sudo).")
                 sys.exit(1)
 
-            packet = packet_create(pid)
+            packet = packet_create(pid, seq)
             send_time = time.time()
 
             try:
